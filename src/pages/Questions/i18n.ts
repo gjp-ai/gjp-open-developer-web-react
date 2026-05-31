@@ -1,9 +1,9 @@
 const questionsTranslations = {
   'questions.eyebrow': { EN: 'Knowledge base', ZH: '知识库' },
-  'questions.title': { EN: 'AI Q&A', ZH: 'AI 问答' },
+  'questions.title': { EN: 'Software Development Q&A', ZH: '软件开发问答' },
   'questions.subtitle': {
-    EN: 'Browse concise answers to common AI concepts, model terms, and practical workflows.',
-    ZH: '浏览常见 AI 概念、模型术语和实用工作流的简明答案。',
+    EN: 'Browse concise answers to common software development concepts, model terms, and practical workflows.',
+    ZH: '浏览常见软件开发概念、模型术语和实用工作流的简明答案。',
   },
   'questions.meta_label': { EN: 'available', ZH: '可浏览' },
   'questions.workspace_label': { EN: 'Question browser', ZH: '问题浏览器' },

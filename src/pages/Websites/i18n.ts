@@ -1,8 +1,8 @@
 const websitesTranslations = {
   'websites.title': { EN: 'Websites', ZH: '网站' },
   'websites.subtitle': {
-    EN: 'Explore curated online tools, AI products, and innovative platforms.',
-    ZH: '探索精选的在线工具、人工智能产品与创新平台。',
+    EN: 'Explore curated online tools, software development products, and innovative platforms.',
+    ZH: '探索精选的在线工具、软件开发产品与创新平台。',
   },
   'websites.empty': { EN: 'No websites match your search.', ZH: '未找到匹配的站点。' },
   'websites.result_count': { EN: '{count} websites', ZH: '{count} 个网站' },

@@ -1,6 +1,6 @@
 const articlesTranslations = {
   'articles.title': { EN: 'Latest Articles', ZH: '文章精选' },
-  'articles.subtitle': { EN: 'Read curated content in tech and AI.', ZH: '阅读科技与人工智能领域的精选内容。' },
+  'articles.subtitle': { EN: 'Read curated content in software development.', ZH: '阅读软件开发领域的精选内容。' },
   'articles.empty': { EN: 'No articles match your search.', ZH: '未找到匹配的文章。' },
   'articles.tags_filter': { EN: 'Filter by tag', ZH: '按标签筛选' },
   'articles.filters.all': { EN: 'All', ZH: '全部' },

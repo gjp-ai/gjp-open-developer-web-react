@@ -1,12 +1,12 @@
 import { useMemo } from 'react'
-import { useAppSettings } from '../contexts/useAppSettings'
+import { useAppSettings } from '../contexts/AppSettings'
 import { useT } from '../i18n'
 
 export const Footer = () => {
   const { getValue } = useAppSettings()
   const t = useT()
   const company = getValue('app_company') ?? 'GJP Technology'
-  const appName = getValue('app_name') ?? 'GJP Developer System'
+  const appName = getValue('app_name') ?? 'GJP Blog System'
   const appVersion = getValue('app_version') ?? '1.0.0'
 
   const currentYear = useMemo(() => new Date().getFullYear(), [])

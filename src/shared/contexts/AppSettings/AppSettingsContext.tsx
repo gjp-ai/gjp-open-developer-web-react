@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { getAppSettings } from '../data/openApi'
-import type { AppSetting } from '../data/types'
-import type { LanguageCode } from './UIContext'
-import { useUIContext } from './useUIContext'
-import { useT } from '../i18n'
+import type { AppSetting } from '../../data/types'
+import type { LanguageCode } from '../UIContext'
+import { useUIContext } from '../UIContext'
+import { useT } from '../../i18n'
+import { getAppSettings } from './appSettingsApi'
 import { AppSettingsContext, type AppSettingsContextValue } from './appSettingsContextCore'
+import { APP_SETTINGS_CACHE_KEY, APP_SETTINGS_FETCHED_FLAG } from './appSettingsStorageKeys'
 
 export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
   const { language } = useUIContext()
@@ -13,40 +14,43 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
+  const writeSettingsCache = useCallback((nextSettings: AppSetting[]) => {
+    try {
+      localStorage.setItem(APP_SETTINGS_CACHE_KEY, JSON.stringify(nextSettings))
+    } catch {
+      // Ignore storage write errors.
+    }
+
+    try {
+      sessionStorage.setItem(APP_SETTINGS_FETCHED_FLAG, '1')
+    } catch {
+      // Ignore storage write errors.
+    }
+  }, [])
+
+  const fetchAndCacheSettings = useCallback(async () => {
+    const response = await getAppSettings()
+    setSettings(response.data)
+    writeSettingsCache(response.data)
+  }, [writeSettingsCache])
+
   const loadSettings = useCallback(async () => {
     setLoading(true)
     setError(null)
-    try {
-      // Try to load cached settings from localStorage first for instant availability
-      const cacheKey = 'gjp_developer_app_settings'
-      const fetchedFlag = 'gjp_developer_app_settings_fetched'
 
+    try {
       try {
-        const cached = localStorage.getItem(cacheKey)
+        const cached = localStorage.getItem(APP_SETTINGS_CACHE_KEY)
         if (cached) {
-          const parsed: AppSetting[] = JSON.parse(cached)
+          const parsed = JSON.parse(cached) as AppSetting[]
           setSettings(parsed)
         }
       } catch {
         // JSON parse error or localStorage access error: ignore and continue to fetch.
       }
 
-      // Call the API only once per page load (use sessionStorage to track this)
-      if (!sessionStorage.getItem(fetchedFlag)) {
-        const response = await getAppSettings()
-        setSettings(response.data)
-
-        try {
-          localStorage.setItem(cacheKey, JSON.stringify(response.data))
-        } catch {
-          // Ignore storage write errors.
-        }
-
-        try {
-          sessionStorage.setItem(fetchedFlag, '1')
-        } catch {
-          // ignore
-        }
+      if (!sessionStorage.getItem(APP_SETTINGS_FETCHED_FLAG)) {
+        await fetchAndCacheSettings()
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : t('failed_to_load')
@@ -54,7 +58,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false)
     }
-  }, [t])
+  }, [fetchAndCacheSettings, t])
 
   useEffect(() => {
     void loadSettings()
@@ -113,6 +117,20 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
     [getValue, language],
   )
 
+  const reload = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      await fetchAndCacheSettings()
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t('failed_to_load')
+      setError(message)
+    } finally {
+      setLoading(false)
+    }
+  }, [fetchAndCacheSettings, t])
+
   const value = useMemo<AppSettingsContextValue>(
     () => ({
       settings,
@@ -121,32 +139,9 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
       getValue,
       getValues,
       getTags,
-      // reload should force a fresh fetch and update localStorage
-      reload: async () => {
-        setLoading(true)
-        setError(null)
-        try {
-          const response = await getAppSettings()
-          setSettings(response.data)
-          try {
-            localStorage.setItem('gjp_developer_app_settings', JSON.stringify(response.data))
-          } catch {
-            // ignore
-          }
-          try {
-            sessionStorage.setItem('gjp_developer_app_settings_fetched', '1')
-          } catch {
-            // ignore
-          }
-        } catch (err) {
-          const message = err instanceof Error ? err.message : t('failed_to_load')
-          setError(message)
-        } finally {
-          setLoading(false)
-        }
-      },
+      reload,
     }),
-    [settings, loading, error, getValue, getValues, getTags, t],
+    [settings, loading, error, getValue, getValues, getTags, reload],
   )
 
   return <AppSettingsContext.Provider value={value}>{children}</AppSettingsContext.Provider>
